@@ -215,7 +215,7 @@ const generator: Generator = {
         line.push(particle.clone());
       }
 
-      const simplifiedLine = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.05, true);
+      const simplifiedLine = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.02, true);
       drawingPasses[pen].lines.push(simplifiedLine.map(({ x, y }) => new Vector2(x, y)));
 
       line.forEach((point) => {
@@ -226,7 +226,7 @@ const generator: Generator = {
           h: 0
         })
       })
-      
+
       if (shouldYield()) {
         await new Promise((res) => setTimeout(res, 0));
         yield `${i} / ${numLines}`;

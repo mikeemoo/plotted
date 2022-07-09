@@ -65,10 +65,10 @@ export default () => {
 
     setLoading(true);
 
-    currentGeneratorProcess = generators[parameters.generator!].generate(params);
 
     (async () => {
-      
+      await new Promise((res) => setTimeout(res, 0));
+      currentGeneratorProcess = generators[parameters.generator!].generate(params);
       const results: DrawingPass[] = await (async (gen) => {
         for await (const msg of gen) {
           if (gen !== currentGeneratorProcess) {

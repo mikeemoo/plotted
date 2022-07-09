@@ -4,7 +4,7 @@ import Input from 'rsuite/Input';
 import { Config, DrawingPass } from '../types';
 import { Vector2 } from 'three';
 import { Generator } from '../types';
-import { noise } from '@chriscourses/perlin-noise';
+import { noise, noiseSeed as setNoiseSeed } from '@chriscourses/perlin-noise';
 import Toggle from 'rsuite/Toggle';
 import InputPicker from 'rsuite/InputPicker';
 import Slider from 'rsuite/Slider';
@@ -27,6 +27,15 @@ const generator: Generator = {
               { value: "perlin", label: "Perlin" },
               { value: "simplex", label: "Simplex" },
             ]}
+          />
+        </Form.Group>
+        <Form.Group controlId="noiseSeed">
+          <Form.ControlLabel>Noise seed:</Form.ControlLabel>
+          <Form.Control
+            accepter={InputNumber}
+            name="noiseSeed"
+            step={1}
+            style={{width: 100}}
           />
         </Form.Group>
         <Form.Group controlId="colorMode">
@@ -107,6 +116,7 @@ const generator: Generator = {
   
   defaultValues: {
     numPens: 1,
+    noiseSeed: 1234567,
     noiseGenerator: 'simplex',
     penWidth1: 0.2,
     penColor1: '#000000',
@@ -127,6 +137,7 @@ const generator: Generator = {
 
   generate: async function *(params: Config) {
 
+
     const numLines = params.numLines as number;
     const numPens = params.numPens as number;
     const pageWidth = params.pageWidth as number;
@@ -134,10 +145,13 @@ const generator: Generator = {
     const frequency = (params.frequency as number / 1000);
     const noiseGenerator = params.noiseGenerator as string;
     const amplitude = params.amplitude as number;
+    const noiseSeed = params.noiseSeed as number;
     const destroyOnCollision = params.destroyOnCollision as boolean;
 
     const qt = QuadTree(0, 0, pageWidth, pageHeight);
-    const simplex = new SimplexNoise();
+    const simplex = new SimplexNoise(noiseSeed);
+
+    setNoiseSeed(noiseSeed);
 
     const fromAngle = (angle: number) => new Vector2(Math.cos(angle), Math.sin(angle));
 
@@ -170,11 +184,9 @@ const generator: Generator = {
       return false;
     }
 
-    const offset = Math.random() * 10000;
-
     const getDirVector = (particle: Vector2) => {
       if (noiseGenerator === 'perlin') {
-        return fromAngle(noise((offset + particle.x) * frequency, (offset + particle.y) * frequency) * Math.PI * amplitude).normalize();
+        return fromAngle(noise(particle.x * frequency, particle.y * frequency) * Math.PI * amplitude).normalize();
       } else {
         return fromAngle(((simplex.noise2D(particle.x * frequency, particle.y * frequency) + 1) / 4) * Math.PI * amplitude).normalize();
       }

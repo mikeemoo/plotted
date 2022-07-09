@@ -1,6 +1,3 @@
-import React from 'react';
-import Form from 'rsuite/Form';
-import Slider from 'rsuite/Slider';
 import { Vector2 } from 'three';
 import { Generator } from '../types';
 

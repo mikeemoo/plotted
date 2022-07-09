@@ -10,13 +10,15 @@ import InputNumber from 'rsuite/InputNumber';
 import { Config, DrawingPass, Generator } from './types';
 import generators from './generators';
 import Preview from './preview';
+import HPGL from './hpgl';
 
 let timeout: NodeJS.Timeout | null = null;
 
 const defaultValues: Config = {
   pageWidth: 300,
   pageHeight: 400,
-  pageColor: 'white'
+  pageColor: 'white',
+  unitsPerMM: 40
 };
 
 let currentGeneratorProcess : AsyncGenerator<any> | null = null;
@@ -93,7 +95,9 @@ export default () => {
     
     <Container>
       <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 20, paddingBottom: 20, backgroundColor: loading ? 'transparent' : 'white', minHeight: '100vh'}}>
+      
         {loading ? <Loader center size="lg" content={loadingMessage} /> : <Preview parameters={parametersGeneratedWith} passes={drawingPasses || []} />}
+        
       </Content>
       <Sidebar style={{paddingLeft: 10}}>
         <Form
@@ -150,6 +154,14 @@ export default () => {
               style={{width: 120}}
             />
           </Form.Group>
+          <Form.Group controlId="unitsPerMM">
+            <Form.ControlLabel>Units per MM:</Form.ControlLabel>
+            <Form.Control
+              accepter={InputNumber}
+              name="unitsPerMM"
+              style={{width: 120}}
+            />
+          </Form.Group>
           <Form.Group controlId="generator">
             <Form.ControlLabel>Generator:</Form.ControlLabel>
             <Form.Control
@@ -163,6 +175,7 @@ export default () => {
           </Form.Group>
           <generator.controls params={parameters} />
         </Form>
+        {!loading && <HPGL passes={drawingPasses || []} unitsPerMM={parameters.unitsPerMM as number} /> }
       </Sidebar>
     </Container>
   );

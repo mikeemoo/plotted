@@ -10,6 +10,7 @@ import InputPicker from 'rsuite/InputPicker';
 import Slider from 'rsuite/Slider';
 import QuadTree from 'simple-quadtree';
 import SimplexNoise from 'simplex-noise';
+import simplify from 'simplify-js';
 
 const generator: Generator = {
   controls: ({ params }) => {
@@ -214,7 +215,9 @@ const generator: Generator = {
         line.push(particle.clone());
       }
 
-      drawingPasses[pen].lines.push(line);
+      const simplifiedLine = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.05, true);
+      drawingPasses[pen].lines.push(simplifiedLine.map(({ x, y }) => new Vector2(x, y)));
+
       line.forEach((point) => {
         qt.put({
           x: point.x,
@@ -223,6 +226,7 @@ const generator: Generator = {
           h: 0
         })
       })
+      
       if (shouldYield()) {
         await new Promise((res) => setTimeout(res, 0));
         yield `${i} / ${numLines}`;

@@ -1,30 +1,27 @@
 import React from 'react';
 import Form from 'rsuite/Form';
 import Slider from 'rsuite/Slider';
+import { Vector2 } from 'three';
 import { Generator } from '../types';
 
 const generator: Generator = {
-  controls: () => (
-    <Form.Group controlId="slider">
-      <Form.ControlLabel>Test:</Form.ControlLabel>
-      <Form.Control
-        accepter={Slider}
-        name="slider"
-        style={{ width: 200, margin: '10px 0' }}
-      />
-    </Form.Group>
-  ),
+  controls: () => null,
   
   defaultValues: {
-    slider: 10
   },
 
   generate: async function *() {
     yield 'generating test';
-    await new Promise((res) => setTimeout(res, 4e3));
-    yield 'done first timeout'
-    await new Promise((res) => setTimeout(res, 4e3));
-    yield [];
+    yield [{
+      penColor: 'black',
+      penWidth: 0.2,
+      lines: [
+        [
+          new Vector2(0, 0),
+          new Vector2(100, 100)
+        ]
+      ]
+    }];
     
   }
 }

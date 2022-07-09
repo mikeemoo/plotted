@@ -9,12 +9,25 @@ import Toggle from 'rsuite/Toggle';
 import InputPicker from 'rsuite/InputPicker';
 import Slider from 'rsuite/Slider';
 import QuadTree from 'simple-quadtree';
+import SimplexNoise from 'simplex-noise';
 
 const generator: Generator = {
   controls: ({ params }) => {
 
     return (
       <>
+        <Form.Group controlId="noiseGenerator">
+          <Form.ControlLabel>Noise generator:</Form.ControlLabel>
+          <Form.Control
+            accepter={InputPicker}
+            name="noiseGenerator"
+            cleanable={false}
+            data={[
+              { value: "perlin", label: "Perlin" },
+              { value: "simplex", label: "Simplex" },
+            ]}
+          />
+        </Form.Group>
         <Form.Group controlId="colorMode">
           <Form.ControlLabel>Color mode:</Form.ControlLabel>
           <Form.Control
@@ -61,20 +74,20 @@ const generator: Generator = {
             style={{width: 100}}
           />
         </Form.Group>
-        <Form.Group controlId="noiseSpread">
-          <Form.ControlLabel>Noise spread:</Form.ControlLabel>
+        <Form.Group controlId="amplitude">
+          <Form.ControlLabel>Amplitude:</Form.ControlLabel>
           <Form.Control
             accepter={InputNumber}
-            name="noiseSpread"
+            name="amplitude"
             step={10}
             style={{width: 75}}
           />
         </Form.Group>
-        <Form.Group controlId="folds">
-          <Form.ControlLabel>Folds:</Form.ControlLabel>
+        <Form.Group controlId="frequency">
+          <Form.ControlLabel>Frequency:</Form.ControlLabel>
           <Form.Control
             accepter={InputNumber}
-            name="folds"
+            name="frequency"
             step={1}
             style={{width: 75}}
           />
@@ -93,6 +106,7 @@ const generator: Generator = {
   
   defaultValues: {
     numPens: 1,
+    noiseGenerator: 'simplex',
     penWidth1: 0.2,
     penColor1: '#000000',
     penWidth2: 0.2,
@@ -105,8 +119,8 @@ const generator: Generator = {
     penColor5: '#000000',
     colorMode: 'random',
     numLines: 1000,
-    noiseSpread: 100,
-    folds: 4,
+    amplitude: 2,
+    frequency: 2,
     destroyOnCollision: false
   },
 
@@ -116,11 +130,13 @@ const generator: Generator = {
     const numPens = params.numPens as number;
     const pageWidth = params.pageWidth as number;
     const pageHeight = params.pageHeight as number;
-    const noiseSpread = params.noiseSpread as number;
-    const folds = params.folds as number;
+    const frequency = (params.frequency as number / 1000);
+    const noiseGenerator = params.noiseGenerator as string;
+    const amplitude = params.amplitude as number;
     const destroyOnCollision = params.destroyOnCollision as boolean;
 
     const qt = QuadTree(0, 0, pageWidth, pageHeight);
+    const simplex = new SimplexNoise();
 
     const fromAngle = (angle: number) => new Vector2(Math.cos(angle), Math.sin(angle));
 
@@ -153,6 +169,16 @@ const generator: Generator = {
       return false;
     }
 
+    const offset = Math.random() * 10000;
+
+    const getDirVector = (particle: Vector2) => {
+      if (noiseGenerator === 'perlin') {
+        return fromAngle(noise((offset + particle.x) * frequency, (offset + particle.y) * frequency) * Math.PI * amplitude).normalize();
+      } else {
+        return fromAngle(((simplex.noise2D(particle.x * frequency, particle.y * frequency) + 1) / 4) * Math.PI * amplitude).normalize();
+      }
+    }
+
     for (let i = 0; i < numLines; i++) {
 
       const pen = Math.floor(Math.random() * numPens);
@@ -163,7 +189,7 @@ const generator: Generator = {
 
       let bail = 1000;
       while (bail--) {
-        const dirVector = fromAngle(noise(particle.x / noiseSpread, particle.y / noiseSpread) * Math.PI * folds).normalize();
+        const dirVector = getDirVector(particle);
         particle.add(dirVector);
         if (isParticleDead(particle)) {
           break;
@@ -180,7 +206,7 @@ const generator: Generator = {
 
       bail = 1000;
       while (bail--) {
-        const dirVector = fromAngle(noise(particle.x / noiseSpread, particle.y / noiseSpread) * Math.PI * folds).normalize();
+        const dirVector = getDirVector(particle);
         particle.sub(dirVector);
         if (isParticleDead(particle)) {
           break;

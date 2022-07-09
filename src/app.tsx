@@ -92,7 +92,7 @@ export default () => {
   return (
     
     <Container>
-      <Content style={{ display: 'flex', justifyContent: 'center', paddingTop: 20, paddingBottom: 20, backgroundColor: loading ? 'transparent' : 'white', minHeight: '100vh'}}>
+      <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 20, paddingBottom: 20, backgroundColor: loading ? 'transparent' : 'white', minHeight: '100vh'}}>
         {loading ? <Loader center size="lg" content={loadingMessage} /> : <Preview parameters={parametersGeneratedWith} passes={drawingPasses || []} />}
       </Content>
       <Sidebar style={{paddingLeft: 10}}>
@@ -112,7 +112,7 @@ export default () => {
                 ...data
                } : {
                 ...Object.keys(defaultValues).reduce((acc, key) => {
-                  acc[key] = data.key || defaultValues[key];
+                  acc[key] = data[key] || defaultValues[key];
                   return acc
                 }, {} as Config),
                 ...generators[nextGenerator].defaultValues,

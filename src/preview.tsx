@@ -16,7 +16,7 @@ export default ({ parameters, passes }: Props) => {
     if (canvasRef.current) {
       const canvas = canvasRef.current as HTMLCanvasElement;
       canvas.width = 1000;
-      canvas.height = 1000 * (parameters.pageHeight as number / (parameters.pageWidth as number));
+      canvas.height = 1000 * ((parameters.pageHeight as number) / (parameters.pageWidth as number));
       const context = canvas.getContext('2d') as CanvasRenderingContext2D;
       //Our first draw
       context.fillStyle = parameters.pageColor as string;
@@ -41,7 +41,7 @@ export default ({ parameters, passes }: Props) => {
 
   return (<canvas ref={canvasRef} style={{
     width: 1000,
-    height: 1000,
+    height: 1000 * ((parameters.pageHeight as number) / (parameters.pageWidth as number)),
     border: '1px solid black',
     boxShadow: '-3px 3px 10px 2px #888888'
   }}></canvas>);

@@ -106,14 +106,14 @@ const generator: Generator = {
               accepter={InputNumber}
               name="minRectangleWidth"
               step={1}
-              style={{width: 60}}
+              style={{width: 80}}
             />
             &nbsp;Max: &nbsp;
             <Form.Control
               accepter={InputNumber}
               name="maxRectangleWidth"
               step={1}
-              style={{width: 60}}
+              style={{width: 80}}
             />
           </Form.Group>
           <Form.Group controlId="form">
@@ -132,11 +132,19 @@ const generator: Generator = {
           {(params.fillStyle === 'tangent' || params.fillStyle === 'random') && 
               <Form.Group controlId="fillSpacing">
                 <Form.ControlLabel>Fill spacing:</Form.ControlLabel>
+                Min:&nbsp;
                 <Form.Control
                   accepter={InputNumber}
-                  name="fillSpacing"
+                  name="fillSpacingMin"
                   step={1}
-                  style={{width: 100}}
+                  style={{width: 80}}
+                />
+                &nbsp;Max:&nbsp;
+                <Form.Control
+                  accepter={InputNumber}
+                  name="fillSpacingMax"
+                  step={1}
+                  style={{width: 80}}
                 />
               </Form.Group>
             }
@@ -210,7 +218,8 @@ const generator: Generator = {
     maxLineLength: 1000,
     amplitude: 2,
     fillStyle: 'none',
-    fillSpacing: 2,
+    fillSpacingMin: 2,
+    fillSpacingMax: 2,
     rectangleMargin: 2,
     minRectangleWidth: 3,
     maxRectangleWidth: 30,
@@ -232,7 +241,8 @@ const generator: Generator = {
     const noiseSeed = Number(params.noiseSeed);
     const destroyOnCollision = params.destroyOnCollision as boolean;
     const fillStyle = params.fillStyle;
-    const fillSpacing = Math.max(0.1, Number(params.fillSpacing));
+    const fillSpacingMin = Math.max(0.1, Number(params.fillSpacingMin));
+    const fillSpacingMax = Math.max(fillSpacingMin, Number(params.fillSpacingMax));
 
     const rectangleMargin = Number(params.rectangleMargin || 0);
     const maxLineLength = Number(params.maxLineLength || 10);
@@ -326,6 +336,7 @@ const generator: Generator = {
       const startX = Math.random() * pageWidth;
       const startY = Math.random() * pageHeight;
       const particle = new Vector2(startX, startY);
+      const fillSpacing = fillSpacingMin + (Math.random() * (fillSpacingMax - fillSpacingMin));
 
       let bail = 1000;
       while (bail--) {

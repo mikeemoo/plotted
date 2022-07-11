@@ -19,3 +19,13 @@ export type DrawingPass = {
   penWidth: number;
   penColor: string;
 }
+
+export type LineBounds = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  maxX: number;
+  maxY: number;
+  line: Vector2[];
+}

@@ -1,0 +1,1 @@
+declare module '2d-polygon-boolean';

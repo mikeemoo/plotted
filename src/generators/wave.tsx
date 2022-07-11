@@ -213,7 +213,7 @@ const generator: Generator = {
     penWidth5: 0.2,
     penColor5: '#000000',
     colorMode: 'random',
-    form: 'rectangles',
+    form: 'lines',
     numLines: 1000,
     maxLineLength: 1000,
     amplitude: 2,

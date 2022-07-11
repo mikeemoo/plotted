@@ -125,10 +125,11 @@ const generator: Generator = {
               data={[
                 { value: "none", label: "None" },
                 { value: "tangent", label: "Tangent" },
+                { value: "random", label: "Random" },
               ]}
             />
           </Form.Group>
-          {params.fillStyle === 'tangent' && 
+          {(params.fillStyle === 'tangent' || params.fillStyle === 'random') && 
               <Form.Group controlId="fillSpacing">
                 <Form.ControlLabel>Fill spacing:</Form.ControlLabel>
                 <Form.Control
@@ -364,10 +365,10 @@ const generator: Generator = {
       const simplified = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.02, true).map(({ x, y }) => new Vector2(x, y));
 
       if (form === 'rectangles') {
-        if (fillStyle === 'none') {
+        if (fillStyle === 'none' || (fillStyle === 'random' && Math.random() < 0.5)) {
           const rectangle = rectangulate(simplified, penWidth, rectangleWidth);
           drawingPasses[pen].lines.push(rectangle);
-        } else if (fillStyle === 'tangent') {
+        } else if (fillStyle === 'tangent' || fillStyle === 'random') {
 
           pointsEvery(simplified, fillSpacing).forEach(({ coord, direction }) => {
             const tangentFrom = new Vector2(-direction.y, direction.x).multiplyScalar(rectangleWidth / 2);

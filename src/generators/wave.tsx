@@ -46,10 +46,34 @@ const generator: Generator = {
             name="colorMode"
             cleanable={false}
             data={[
-              { value: "random", label: "Random" }
+              { value: "random", label: "Random" },
+              { value: "noise", label: "Noise" },
             ]}
           />
         </Form.Group>
+
+        {params.colorMode === 'noise' && 
+          <>
+            <Form.Group controlId="colorSeed">
+              <Form.ControlLabel>Color seed:</Form.ControlLabel>
+              <Form.Control
+                accepter={InputNumber}
+                name="colorSeed"
+                style={{width: 120}}
+                step={1}
+              />
+            </Form.Group>
+            <Form.Group controlId="colorFrequency">
+              <Form.ControlLabel>Color frequency:</Form.ControlLabel>
+              <Form.Control
+                accepter={InputNumber}
+                name="colorFrequency"
+                style={{width: 120}}
+                step={1}
+              />
+            </Form.Group>
+          </>
+        }
         <Form.Group controlId="numPens">
           <Form.ControlLabel>Number of pens:</Form.ControlLabel>
           <Form.Control
@@ -218,11 +242,13 @@ const generator: Generator = {
     maxLineLength: 1000,
     amplitude: 2,
     fillStyle: 'none',
+    colorFrequency: 4,
+    colorSeed: 123123,
     fillSpacingMin: 2,
     fillSpacingMax: 2,
     rectangleMargin: 2,
-    minRectangleWidth: 3,
-    maxRectangleWidth: 30,
+    minRectangleWidth: 1,
+    maxRectangleWidth: 5,
     frequency: 2,
     destroyOnCollision: false
   },
@@ -243,14 +269,19 @@ const generator: Generator = {
     const fillStyle = params.fillStyle;
     const fillSpacingMin = Math.max(0.1, Number(params.fillSpacingMin));
     const fillSpacingMax = Math.max(fillSpacingMin, Number(params.fillSpacingMax));
+    const colorMode = params.colorMode as string;
 
     const rectangleMargin = Number(params.rectangleMargin || 0);
     const maxLineLength = Number(params.maxLineLength || 10);
     const minRectangleWidth = Number(params.minRectangleWidth || 0.1);
     const maxRectangleWidth = Number(params.maxRectangleWidth || 0.1);
+    const colorSeed = Number(params.colorSeed || 0);
+    const colorFrequency = Math.max(1, Number(params.colorFrequency || 1)) / 1000;
+
 
     const qt = QuadTree(0, 0, pageWidth, pageHeight);
     const simplex = new SimplexNoise(noiseSeed);
+    const colorSimplex = new SimplexNoise(colorSeed);
 
     setNoiseSeed(noiseSeed);
 
@@ -330,11 +361,14 @@ const generator: Generator = {
     for (let i = 0; i < numLines; i++) {
 
       const rectangleWidth = minRectangleWidth + (Math.random() * (maxRectangleWidth - minRectangleWidth));
-      const pen = Math.floor(Math.random() * numPens);
-      const penWidth = drawingPasses[pen].penWidth;
       const line: Vector2[] = [];
       const startX = Math.random() * pageWidth;
       const startY = Math.random() * pageHeight;
+      const pen = colorMode === 'random' ?
+        Math.floor(Math.random() * numPens) :
+        Math.floor(((colorSimplex.noise2D(startX * colorFrequency, startY * colorFrequency) + 1) / 2) * numPens);
+      
+      const penWidth = drawingPasses[pen].penWidth;
       const particle = new Vector2(startX, startY);
       const fillSpacing = fillSpacingMin + (Math.random() * (fillSpacingMax - fillSpacingMin));
 

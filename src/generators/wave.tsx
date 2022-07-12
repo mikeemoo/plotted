@@ -287,12 +287,12 @@ const generator: Generator = {
 
     const fromAngle = (angle: number) => new Vector2(Math.cos(angle), Math.sin(angle));
 
-    const isParticleDead = (particle: Vector2, line: Vector2[]): boolean => {
+    const isParticleDead = (particle: Vector2, line: Vector2[], firstHalfBroken: boolean): boolean => {
       if (particle.x >= pageWidth || particle.x < 0 || particle.y >= pageHeight || particle.y < 0) {
         return true;
       }
 
-      if (lineLength([...line, particle]) > maxLineLength) {
+      if (lineLength([...line, particle]) > (maxLineLength * (firstHalfBroken ? Math.random() : 1))) {
         return true;
       }
 
@@ -309,12 +309,12 @@ const generator: Generator = {
       return false;
     }
 
-    const isRectangleDead = (particle: Vector2, line: Vector2[], rectangleWidth: number): boolean => {
+    const isRectangleDead = (particle: Vector2, line: Vector2[], rectangleWidth: number, firstHalfBroken: boolean): boolean => {
       if (particle.x >= pageWidth || particle.x < 0 || particle.y >= pageHeight || particle.y < 0) {
         return true;
       }
 
-      if (lineLength([...line, particle]) > maxLineLength) {
+      if (lineLength([...line, particle]) > (maxLineLength * (firstHalfBroken ? Math.random() : 1))) {
         return true;
       }
 
@@ -371,14 +371,15 @@ const generator: Generator = {
       const penWidth = drawingPasses[pen].penWidth;
       const particle = new Vector2(startX, startY);
       const fillSpacing = fillSpacingMin + (Math.random() * (fillSpacingMax - fillSpacingMin));
-
+      let firstHalfOffPage = false;
       let bail = 1000;
       while (bail--) {
         const dirVector = getDirVector(particle);
         particle.add(dirVector);
-        if (form === 'lines' && isParticleDead(particle, line)) {
+        firstHalfOffPage = firstHalfOffPage || (particle.x >= pageWidth || particle.x < 0 || particle.y >= pageHeight || particle.y < 0);
+        if (form === 'lines' && isParticleDead(particle, line, false)) {
           break;
-        } else if (form === 'rectangles' && isRectangleDead(particle, line, rectangleWidth)) {
+        } else if (form === 'rectangles' && isRectangleDead(particle, line, rectangleWidth, false)) {
           break;
         }
         line.push(particle.clone());
@@ -395,9 +396,9 @@ const generator: Generator = {
       while (bail--) {
         const dirVector = getDirVector(particle);
         particle.sub(dirVector);
-        if (form === 'lines' && isParticleDead(particle, line)) {
+        if (form === 'lines' && isParticleDead(particle, line, firstHalfOffPage)) {
           break;
-        } else if (form === 'rectangles' && isRectangleDead(particle, line, rectangleWidth)) {
+        } else if (form === 'rectangles' && isRectangleDead(particle, line, rectangleWidth, firstHalfOffPage)) {
           break;
         }
         line.push(particle.clone());
@@ -407,7 +408,7 @@ const generator: Generator = {
         continue;
       }
 
-      const simplified = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.02, true).map(({ x, y }) => new Vector2(x, y));
+      const simplified = simplify(line.map((point) => ({ x: point.x, y: point.y })), 0.01, true).map(({ x, y }) => new Vector2(x, y));
 
       if (form === 'rectangles') {
         if (fillStyle === 'none' || (fillStyle === 'random' && Math.random() < 0.5)) {

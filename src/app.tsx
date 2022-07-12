@@ -11,6 +11,7 @@ import { Config, DrawingPass, Generator } from './types';
 import generators from './generators';
 import Preview from './preview';
 import HPGL from './hpgl';
+import postProcess from './post-process';
 
 let timeout: NodeJS.Timeout | null = null;
 
@@ -18,7 +19,8 @@ const defaultValues: Config = {
   pageWidth: 300,
   pageHeight: 400,
   pageColor: 'white',
-  unitsPerMM: 40
+  unitsPerMM: 40,
+  overdraw: 'trim'
 };
 
 let currentGeneratorProcess : AsyncGenerator<any> | null = null;
@@ -86,7 +88,7 @@ export default () => {
         currentGeneratorProcess = null;
         setLoading(false);
         setParametersGeneratedWith(params);
-        setDrawingPasses(results || []);
+        setDrawingPasses(postProcess(params.overdraw, results || [], params.pageWidth, params.pageHeight));
       }
     })();
   }, [parameters])
@@ -160,6 +162,20 @@ export default () => {
               accepter={InputNumber}
               name="unitsPerMM"
               style={{width: 120}}
+            />
+          </Form.Group>
+          <Form.Group controlId="overdraw">
+            <Form.ControlLabel>Overdraw (outside margin):</Form.ControlLabel>
+            <Form.Control
+              accepter={InputPicker}
+              name="overdraw"
+              style={{width: 120}}
+              cleanable={false}
+              data={[
+                { value: "allow", label: "Allow"},
+                { value: "trim", label: "Trim line"},
+                { value: "destroy", label: "Destroy line"},
+              ]}
             />
           </Form.Group>
           <Form.Group controlId="generator">

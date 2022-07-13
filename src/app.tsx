@@ -12,6 +12,7 @@ import generators from './generators';
 import Preview from './preview';
 import HPGL from './hpgl';
 import postProcess from './post-process';
+import SVGPanel from './svg';
 
 let timeout: NodeJS.Timeout | null = null;
 
@@ -192,6 +193,7 @@ export default () => {
           <generator.controls params={parameters} />
         </Form>
         {!loading && <HPGL passes={drawingPasses || []} unitsPerMM={parameters.unitsPerMM as number} /> }
+        {!loading && <SVGPanel passes={drawingPasses || []} params={parameters} /> }
       </Sidebar>
     </Container>
   );

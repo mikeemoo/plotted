@@ -1,5 +1,6 @@
 import React from 'react';
 import { Config, DrawingPass } from "./types"
+import { SVGPreview } from './svg';
 
 type Props = {
   parameters: Config;
@@ -7,8 +8,11 @@ type Props = {
 }
 
 export default ({ parameters, passes }: Props) => {
-
   const scale = 1000 / (parameters.pageWidth as number);
+
+  const width = 1000;
+  const height = 1000 * ((parameters.pageHeight as number) / (parameters.pageWidth as number));
+
 
   const canvasRef = React.useRef(null);
   

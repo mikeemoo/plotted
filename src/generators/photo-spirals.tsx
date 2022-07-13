@@ -31,7 +31,8 @@ const generator: Generator = {
             <Form.ControlLabel>Pen width:</Form.ControlLabel>
             <Form.Control
               accepter={InputNumber}
-              name={`penWidthMain`}
+              name="penWidthMain"
+              key="penWidthMain"
               step={0.1}
               style={{width: 75}}
             />
@@ -42,6 +43,7 @@ const generator: Generator = {
               accepter={InputNumber}
               name="rotationCyan"
               step={10}
+              key="rotationCyan"
               style={{width: 75}}
             />
           </Form.Group>
@@ -50,6 +52,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="modifierCyan"
+              key="modifierCyan"
               step={0.05}
               min={-1}
               max={1}
@@ -61,6 +64,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="rotationMagenta"
+              key="rotationMagenta"
               step={10}
               style={{width: 75}}
             />
@@ -70,6 +74,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="modifierMagenta"
+              key="modifierMagenta"
               step={0.05}
               min={-1}
               max={1}
@@ -81,6 +86,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="rotationYellow"
+              key="rotationYellow"
               step={10}
               style={{width: 75}}
             />
@@ -90,6 +96,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="modifierYellow"
+              key="modifierYellow"
               step={0.05}
               min={-1}
               max={1}
@@ -101,6 +108,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="rotation"
+              key="rotation"
               step={10}
               style={{width: 75}}
             />
@@ -110,6 +118,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="modifierBlack"
+              key="modifierBlack"
               step={0.05}
               min={-1}
               max={1}
@@ -124,12 +133,14 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name={`penWidthMain`}
+              key="penWidthMain"
               step={0.1}
               style={{width: 75}}
             />
             <Form.Control
               accepter={Input}
               name={`penColorMain`}
+              key="penColorMain"
               style={{width: 120}}
             />
           </Form.Group>
@@ -138,6 +149,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="rotation"
+              key="rotation"
               step={10}
               style={{width: 75}}
             />
@@ -147,6 +159,7 @@ const generator: Generator = {
             <Form.Control
               accepter={InputNumber}
               name="modifierBlack"
+              key="modifierBlack"
               step={0.05}
               min={-1}
               max={1}
@@ -158,6 +171,7 @@ const generator: Generator = {
             <Form.Control
               accepter={Toggle}
               name={`inverted`}
+              key="inverted"
               defaultChecked={params.inverted as boolean}
             />
           </Form.Group>
@@ -199,7 +213,7 @@ const generator: Generator = {
     modifierMagenta: 0,
     spiralGap: 0.5,
     inverted: false,
-    cmyk: false
+    cmyk: true
   },
 
   generate: async function *(params: Config) {
@@ -213,6 +227,9 @@ const generator: Generator = {
     const inverted = !!params.inverted;
     
     const drawingPasses: DrawingPass[] = [];
+
+    await new Promise((res) => setTimeout(res, 0));
+    yield 'generating spirals';
 
     await new Promise((res) => {
       const img = new Image();
@@ -241,7 +258,7 @@ const generator: Generator = {
         const radius = spiralRadius;
         const penWidth = penWidthMain + spiralGap;
         const loops = radius / penWidth;
-        const segments = 50;
+        const segments = 20;
         const steps = segments * loops;
 
         const startX = (pageWidth - maximumSize) / 2;
@@ -249,22 +266,103 @@ const generator: Generator = {
         const centerX = pageWidth / 2;
         const centerY = pageHeight / 2;
 
-        const colorPasses = params.cmyk ? ['Cyan','Magenta','Yellow','Black'] : [false];
+        const drawSpiralAt = (x: number, y: number, color: string, colorModifier: number): Vector2[] => {
 
-        colorPasses.forEach((colorPass) => {
-          const addAngle = Math.random() * Math.PI * 2;
+          const index = (Math.round(y) * pageWidth + Math.round(x)) * 4;
+          const line: Vector2[] = [];
+          let r = 0;
+
+          if (params.cmyk) {
+            let cyan = 1 - (imgData.data[index] / 255);
+            let magenta = 1 - (imgData.data[index + 1] / 255);
+            let yellow = 1 - (imgData.data[index + 2] / 255);
+            let black = Math.min(cyan, Math.min(magenta, yellow));
+            cyan = (cyan - black) / (1 - black);
+            magenta = (magenta - black) / (1 - black);
+            yellow = (yellow - black) / (1 - black);
+            cyan = isNaN(cyan) ? 0 : cyan;
+            magenta = isNaN(magenta) ? 0 : magenta;
+            yellow = isNaN(yellow) ? 0 : yellow;
+            black = isNaN(black) ? 0 : black;
+            if (color == 'Cyan') {
+              r = cyan;
+            } else if (color === 'Magenta') {
+              r = magenta;
+            } else if (color === 'Yellow') {
+              r = yellow;
+            } else {
+              r = black;
+            }
+          } else {
+            const g = 0.2125 * imgData.data[index] + 0.7154 * imgData.data[index + 1] + 0.0721 * imgData.data[index + 2];
+            r = g / 255;
+            if (!inverted) {
+              r = 1 - r;
+            }
+          }
+
+          r = r * colorModifier + (1 - colorModifier);
+          
+          let angle = (noise(x / 200, y / 200) * 2 * Math.PI);
+          for (let i = 0; i <= (steps * r); i++) {
+            const rr = (i / steps) * radius;
+            angle += (Math.PI * 2) / segments;
+
+            line.push(new Vector2(
+              x + rr * Math.cos(angle),
+              y + rr * Math.sin(angle),
+            ));
+          }
+
+          return line;
+        }
+        
+
+        if (params.cmyk) {
+          ['Cyan', 'Magenta', 'Yellow', 'Black'].forEach((colorPass) => {
+            const angleModifier = (colorPass === 'Black' ? rotation : Number(params[`rotation${colorPass}`])) * (Math.PI / 180);
+            const colorModifier = 2 - (Number(params[`modifier${colorPass}`]) + 1);
+
+
+            const drawingPass: DrawingPass = {
+              penWidth: penWidthMain,
+              penColor: String(colorPass || penColorMain).toLowerCase(),
+              lines: []
+            }
+       
+            const cos = Math.cos(angleModifier);
+            const sin = Math.sin(angleModifier);
+  
+            for (let y = startY; y < pageHeight - startY; y += radius * 2) {
+              for (let x = startX; x < pageWidth - startX; x += radius * 2) {
+  
+                const pX = ((x - centerX) * cos) - ((y - centerY) * sin) + centerX;
+                const pY = ((x - centerX) * sin) + ((y - centerY) * cos) + centerY;
+                if (pX < 0 || pY < 0 || pX > pageWidth || pY > pageHeight) {
+                  continue;
+                }
+  
+                const spiral = drawSpiralAt(pX, pY, colorPass, colorModifier);
+                if (spiral.length > 1) {
+                  drawingPass.lines.push(spiral);
+                }
+              }
+            }
+            drawingPasses.push(drawingPass);
+          });
+
+        } else {
 
           const drawingPass: DrawingPass = {
             penWidth: penWidthMain,
-            penColor: String(colorPass || penColorMain).toLowerCase(),
+            penColor: penColorMain,
             lines: []
           }
 
-          const a = ((!colorPass || colorPass === 'Black') ? rotation : Number(params[`rotation${colorPass}`])) * (Math.PI / 180);
-          const modifier = Math.max(0, Math.min(2, 2 - (((!colorPass || colorPass === 'Black') ? Number(params[`modifierBlack`]) : Number(params[`modifier${colorPass}`])) + 1)));
-       
-          const cos = Math.cos(a);
-          const sin = Math.sin(a);
+          const rotRad = rotation * (Math.PI / 180);
+     
+          const cos = Math.cos(rotRad);
+          const sin = Math.sin(rotRad);
 
           for (let y = startY; y < pageHeight - startY; y += radius * 2) {
             for (let x = startX; x < pageWidth - startX; x += radius * 2) {
@@ -274,69 +372,22 @@ const generator: Generator = {
               if (pX < 0 || pY < 0 || pX > pageWidth || pY > pageHeight) {
                 continue;
               }
-
-              const index = (Math.round(pY) * pageWidth + Math.round(pX)) * 4;
-              const line: Vector2[] = [];
-              let r = 0;
-
-              if (params.cmyk) {
-                let cyan = 1 - (imgData.data[index] / 255);
-                let magenta = 1 - (imgData.data[index + 1] / 255);
-                let yellow = 1 - (imgData.data[index + 2] / 255);
-                let black = Math.min(cyan, Math.min(magenta, yellow));
-                cyan = (cyan - black) / (1 - black);
-                magenta = (magenta - black) / (1 - black);
-                yellow = (yellow - black) / (1 - black);
-                cyan = isNaN(cyan) ? 0 : cyan;
-                magenta = isNaN(magenta) ? 0 : magenta;
-                yellow = isNaN(yellow) ? 0 : yellow;
-                black = isNaN(black) ? 0 : black;
-                if (colorPass == 'Cyan') {
-                  r = cyan;
-                } else if (colorPass === 'Magenta') {
-                  r = magenta;
-                } else if (colorPass === 'Yellow') {
-                  r = yellow;
-                } else {
-                  r = black;
-                }
-              } else {
-                const g = 0.2125 * imgData.data[index] + 0.7154 * imgData.data[index + 1] + 0.0721 * imgData.data[index + 2];
-                r = g / 255;
-                if (!inverted) {
-                  r = 1 - r;
-                }
-              }
-
-              r = r * modifier + (1 - modifier);
-              
-              let angle = (noise(pX / 200, pY / 200) * 2 * Math.PI) + addAngle;
-              for (let i = 0; i <= (steps * r); i++) {
-                const rr = (i / steps) * radius;
-                angle += (Math.PI * 2) / segments;
-
-                line.push(new Vector2(
-                  pX + rr * Math.cos(angle),
-                  pY + rr * Math.sin(angle),
-                ));
-              }
-              if (line.length > 1) {
-                drawingPass.lines.push(line);
+              const spiral = drawSpiralAt(pX, pY, 'grey', 2 - (Number(params.modifierBlack) + 1));
+              if (spiral.length > 1) {
+                drawingPass.lines.push(spiral);
               }
             }
           }
           drawingPasses.push(drawingPass);
-        });
+        }
+
         res(null);
 
       };
       img.src = photoUrl;
     });
-
-    console.log(drawingPasses);
     
 
-    yield 'generating test';
     yield drawingPasses;
     
   }

@@ -4,7 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "2d-polygon-boolean": "^1.0.1",
     "@chriscourses/perlin-noise": "^1.0.5",
     "@types/file-saver": "^2.0.5",
     "@types/offscreencanvas": "^2019.7.0",
@@ -14,6 +13,7 @@
     "@types/react-dom": "18.0.0",
     "@types/robust-point-in-polygon": "^1.0.2",
     "@types/three": "^0.141.0",
+    "2d-polygon-boolean": "^1.0.1",
     "css-loader": "^6.7.1",
     "easy-promise-queue": "^0.5.7",
     "file-saver": "^2.0.5",

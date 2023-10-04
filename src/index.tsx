@@ -6,6 +6,6 @@ import 'rsuite/styles/index.less';
 
 const root = ReactDOM.createRoot(document.getElementById('main') as Element);
 
-const render = () => root.render(<CustomProvider theme="dark"><App /></CustomProvider>);
+const render = () => root.render(<CustomProvider theme="dark"><App /></CustomProvider>)
 
 render();

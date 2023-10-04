@@ -1,7 +1,7 @@
 import Form from 'rsuite/Form';
 import InputNumber from 'rsuite/InputNumber';
 import Input from 'rsuite/Input';
-import { Config, DrawingPass, LineBounds } from '../types';
+import { Config, DrawingPass } from '../types';
 import { Vector2 } from 'three';
 import { Generator } from '../types';
 import { noise, noiseSeed as setNoiseSeed } from '@chriscourses/perlin-noise';
@@ -9,7 +9,7 @@ import Toggle from 'rsuite/Toggle';
 import InputPicker from 'rsuite/InputPicker';
 import Slider from 'rsuite/Slider';
 import QuadTree from 'simple-quadtree';
-import SimplexNoise from 'simplex-noise';
+import { createNoise2D } from 'simplex-noise';
 import simplify from 'simplify-js';
 import { rectangulate, lineLength, split, pointsEvery} from '../utils';
 
@@ -280,8 +280,8 @@ const generator: Generator = {
 
 
     const qt = QuadTree(0, 0, pageWidth, pageHeight);
-    const simplex = new SimplexNoise(noiseSeed);
-    const colorSimplex = new SimplexNoise(colorSeed);
+    const simplex = createNoise2D(() => noiseSeed);
+    const colorSimplex = createNoise2D(() => colorSeed);
 
     setNoiseSeed(noiseSeed);
 
@@ -354,7 +354,7 @@ const generator: Generator = {
       if (noiseGenerator === 'perlin') {
         return fromAngle(noise(particle.x * frequency, particle.y * frequency) * Math.PI * amplitude).normalize();
       } else {
-        return fromAngle(((simplex.noise2D(particle.x * frequency, particle.y * frequency) + 1) / 4) * Math.PI * amplitude).normalize();
+        return fromAngle(((simplex(particle.x * frequency, particle.y * frequency) + 1) / 4) * Math.PI * amplitude).normalize();
       }
     }
 
@@ -366,7 +366,7 @@ const generator: Generator = {
       const startY = Math.random() * pageHeight;
       const pen = colorMode === 'random' ?
         Math.floor(Math.random() * numPens) :
-        Math.floor(((colorSimplex.noise2D(startX * colorFrequency, startY * colorFrequency) + 1) / 2) * numPens);
+        Math.floor(((colorSimplex(startX * colorFrequency, startY * colorFrequency) + 1) / 2) * numPens);
       
       const penWidth = drawingPasses[pen].penWidth;
       const particle = new Vector2(startX, startY);

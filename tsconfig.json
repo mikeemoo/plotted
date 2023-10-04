@@ -11,7 +11,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "types": ["offscreencanvas"],
+    "types": [],
     "typeRoots": [
       "src/types/*"
     ]

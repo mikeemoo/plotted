@@ -105,46 +105,52 @@ const generator: Generator = {
     yield 'Loading image...';
     await new Promise((res) => setTimeout(res, 0));
 
-    await new Promise((res) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            const offscreen = new OffscreenCanvas(pageWidth, pageHeight);
-    
-            const hRatio = offscreen.width / img.width;
-            const vRatio =  offscreen.height / img.height;
-    
-            const ratio = Math.max (hRatio, vRatio);
-    
-            const centerShiftX = ( offscreen.width - img.width * ratio ) / 2;
-            const centerShiftY = ( offscreen.height - img.height * ratio ) / 2;
-    
-            const ctx = offscreen.getContext('2d') as OffscreenCanvasRenderingContext2D;
-            ctx.clearRect(0, 0, offscreen.width, offscreen.height);
-            ctx.drawImage(img, 0,0, img.width, img.height,
-                          centerShiftX,centerShiftY,img.width*ratio, img.height*ratio);
-            const imgData = ctx.getImageData(0, 0, pageWidth, pageHeight);
+    try {
+        await new Promise((res, rej) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const offscreen = new OffscreenCanvas(pageWidth, pageHeight);
+        
+                const hRatio = offscreen.width / img.width;
+                const vRatio =  offscreen.height / img.height;
+        
+                const ratio = Math.max (hRatio, vRatio);
+        
+                const centerShiftX = ( offscreen.width - img.width * ratio ) / 2;
+                const centerShiftY = ( offscreen.height - img.height * ratio ) / 2;
+        
+                const ctx = offscreen.getContext('2d') as OffscreenCanvasRenderingContext2D;
+                ctx.clearRect(0, 0, offscreen.width, offscreen.height);
+                ctx.drawImage(img, 0,0, img.width, img.height,
+                            centerShiftX,centerShiftY,img.width*ratio, img.height*ratio);
+                const imgData = ctx.getImageData(0, 0, pageWidth, pageHeight);
 
-            var i = 0;
-            while (i < total){
-                var x = Math.round(Math.random() * pageWidth);
-                var y = Math.round(Math.random() * pageHeight);
-                const r = imgData.data[(y * pageWidth + x) * 4 + 0];
-                const g = imgData.data[(y * pageWidth + x) * 4 + 1];
-                const b = imgData.data[(y * pageWidth + x) * 4 + 2];
-                const brightness = 255 - (((r*299)+(g*587)+(b*114))/1000);
-                brightnessCache[i] = brightness;
-                if (Math.random() < (brightness / 254) ** 2){
-                    points[i * 2 + 0] = x;
-                    points[i * 2 + 1] = y;
-                    i++;
+                var i = 0;
+                while (i < total){
+                    var x = Math.round(Math.random() * pageWidth);
+                    var y = Math.round(Math.random() * pageHeight);
+                    const r = imgData.data[(y * pageWidth + x) * 4 + 0];
+                    const g = imgData.data[(y * pageWidth + x) * 4 + 1];
+                    const b = imgData.data[(y * pageWidth + x) * 4 + 2];
+                    const brightness = 255 - (((r*299)+(g*587)+(b*114))/1000);
+                    brightnessCache[i] = brightness;
+                    if (Math.random() < (brightness / 254) ** 2){
+                        points[i * 2 + 0] = x;
+                        points[i * 2 + 1] = y;
+                        i++;
+                    }
                 }
+                
+                res(false);
             }
-            
-            res(false);
-        }
-        img.src = photoUrl;
-    });
+            img.onerror = rej;
+            img.src = photoUrl;
+        });
+    } catch (e) {
+        yield 'Unable to load image';
+        await new Promise((res) => setTimeout(res, 60e3));
+    }
 
     yield 'Generating voronoi...';
     await new Promise((res) => setTimeout(res, 0));

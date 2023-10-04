@@ -240,7 +240,9 @@ const generator: Generator = {
     await new Promise((res) => setTimeout(res, 0));
 
     const startNodes = ps.filter((r: any) => r.join && !r.used);
-    startNodes.forEach((n: any) => {
+
+    for (let j = 0; j < startNodes.length; j++) {
+        const n = startNodes[j];
         const l: number[][] = [];
         let node = n;
         while (node) {
@@ -248,11 +250,16 @@ const generator: Generator = {
             node = node.join;
         }
         const interp = new CurveInterpolator(l, { tension, alpha });
-        const pts = interp.getPoints(50000).map((a: [number, number]) => ({ x: a[0], y: a[1]}));
+        const pts = interp.getPoints(20000).map((a: [number, number]) => ({ x: a[0], y: a[1]}));
 
         const simplified = simplify(pts, 0.01, true).map(({ x, y }) => new Vector2(x, y));
         lines.push(simplified);
-    });
+
+        if (j % 10 === 0) {
+            yield `Building paths (${j}/${startNodes.length})...`;
+            await new Promise((res) => setTimeout(res, 0));
+        }
+    }
 
 
     const drawingPass: DrawingPass = {

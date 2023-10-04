@@ -3,7 +3,6 @@ import { Config, DrawingPass, Generator } from '../types';
 import Form from 'rsuite/Form';
 import InputNumber from 'rsuite/InputNumber';
 import Input from 'rsuite/Input';
-import Toggle from 'rsuite/Toggle';
 import { noise } from '@chriscourses/perlin-noise';
 
 const generator: Generator = {
@@ -113,10 +112,6 @@ const generator: Generator = {
             )
           )
         }
-        // [
-        //   new Vector2(left, margin + (y * verticalSpacing)),
-        //   new Vector2(left + lineWidth, margin + (y * verticalSpacing))
-        // ]);
 
         drawingPass.lines.push(line);
       }

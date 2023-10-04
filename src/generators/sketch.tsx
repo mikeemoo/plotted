@@ -75,9 +75,9 @@ const generator: Generator = {
   ),
   
   defaultValues: {
-    penWidthMain: 0.2,
+    penWidthMain: 0.1,
     penColorMain: 'black',
-    photoUrl: 'https://media.cnn.com/api/v1/images/stellar/prod/210604151110-02-platon-nft-iris-series-restricted.jpg?q=x_0,y_823,h_1350,w_2400,c_crop/h_720,w_1280',
+    photoUrl: 'https://i.imgur.com/gm8UVmd.png',
     numPoints: 50000,
     tension: 0.1,
     alpha: 1,
